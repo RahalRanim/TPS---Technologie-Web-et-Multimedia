@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application de Gestion de Tâches</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    #app {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    #taskInput {
+      width: 70%;
+      padding: 10px;
+    }
+    #addBtn {
+      padding: 10px;
+      margin-left: 5px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #eee;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+    }
+    li.completed span {
+      text-decoration: line-through;
+      color: gray;
+    }
+    button {
+      margin-left: 5px;
+    }
+    #stats {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    #search {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Gestion de Tâches (To-Do List)</h1>
+  <div id="app">
+    <!-- Étape 1 : Structure -->
+    <input type="text" id="taskInput" placeholder="Nouvelle tâche...">
+    <button id="addBtn">Ajouter</button>
+    <input type="text" id="search" placeholder="Rechercher une tâche...">
+    <ul id="taskList"></ul>
+    <div id="stats"></div>
+    <button id="clearAll">Tout supprimer</button>
+  </div>
+
+  <script>
+    // Étape 2 : Premiers scripts
+    console.log("Bienvenue dans l'application de gestion de tâches !");
+
+    // Variables globales
+    let taches = JSON.parse(localStorage.getItem('taches')) || [];
+
+    // Étape 3 & 6 : Fonctions
+    function ajouterTache(texte) {
+      if (texte.trim() === "") return;
+      const nouvelleTache = { texte, terminee: false };
+      taches.push(nouvelleTache);
+      sauvegarder();
+      afficherTaches();
+    }
+
+    function supprimerTache(index) {
+      taches.splice(index, 1);
+      sauvegarder();
+      afficherTaches();
+    }
+
+    function terminerTache(index) {
+      taches[index].terminee = !taches[index].terminee;
+      sauvegarder();
+      afficherTaches();
+    }
+
+    function afficherTaches(filtre = "") {
+      const liste = document.getElementById("taskList");
+      liste.innerHTML = "";
+      taches.forEach((tache, index) => {
+        if (tache.texte.toLowerCase().includes(filtre.toLowerCase())) {
+          const li = document.createElement("li");
+          if (tache.terminee) li.classList.add("completed");
+
+          const span = document.createElement("span");
+          span.textContent = tache.texte;
+
+          const btnTerminer = document.createElement("button");
+          btnTerminer.textContent = "Terminer";
+          btnTerminer.onclick = () => terminerTache(index);
+
+          const btnSupprimer = document.createElement("button");
+          btnSupprimer.textContent = "Supprimer";
+          btnSupprimer.onclick = () => supprimerTache(index);
+
+          li.appendChild(span);
+          li.appendChild(btnTerminer);
+          li.appendChild(btnSupprimer);
+          liste.appendChild(li);
+        }
+      });
+      mettreAJourStats();
+    }
+
+    function mettreAJourStats() {
+      const total = taches.length;
+      const terminees = taches.filter(t => t.terminee).length;
+      const enCours = total - terminees;
+      document.getElementById("stats").textContent =
+        `Total: ${total} | Terminées: ${terminees} | En cours: ${enCours}`;
+    }
+
+    function sauvegarder() {
+      localStorage.setItem('taches', JSON.stringify(taches));
+    }
+
+    // Étape 4 : Gestion des événements
+    document.getElementById("addBtn").addEventListener("click", () => {
+      const input = document.getElementById("taskInput");
+      ajouterTache(input.value);
+      input.value = "";
+    });
+
+    document.getElementById("taskInput").addEventListener("keypress", e => {
+      if (e.key === "Enter") {
+        ajouterTache(e.target.value);
+        e.target.value = "";
+      }
+    });
+
+    document.getElementById("clearAll").addEventListener("click", () => {
+      taches = [];
+      sauvegarder();
+      afficherTaches();
+    });
+
+    document.getElementById("search").addEventListener("input", e => {
+      afficherTaches(e.target.value);
+    });
+
+    // Étape 9 : Charger les données sauvegardées
+    afficherTaches();
+  </script>
+</body>
+</html>
